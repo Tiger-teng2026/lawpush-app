@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>律推·LawPush - AI智能获客SaaS平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0A1628;
+            --bg-secondary: #0D1F3C;
+            --bg-tertiary: #11264A;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-card-hover: rgba(255, 255, 255, 0.06);
+            --bg-glass: rgba(13, 31, 60, 0.75);
+            --gold: #C9A94E;
+            --gold-light: #E0C878;
+            --gold-dark: #A8883A;
+            --gold-glow: rgba(201, 169, 78, 0.25);
+            --text-primary: #F0F4FA;
+            --text-secondary: rgba(240, 244, 250, 0.7);
+            --text-muted: rgba(240, 244, 250, 0.45);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-gold: rgba(201, 169, 78, 0.35);
+            --danger: #E74C3C;
+            --danger-bg: rgba(231, 76, 60, 0.15);
+            --success: #2ECC71;
+            --success-bg: rgba(46, 204, 113, 0.15);
+            --warning: #F39C12;
+            --info: #3498DB;
+            --info-bg: rgba(52, 152, 219, 0.15);
+            --sidebar-width: 240px;
+            --sidebar-width-collapsed: 68px;
+            --top-bar-height: 64px;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+            --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+            --shadow-gold: 0 4px 20px rgba(201, 169, 78, 0.2);
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
+
+        .app-container { display: flex; min-height: 100vh; width: 100%; }
+
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column;
+            z-index: 100;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+        .sidebar.collapsed { width: var(--sidebar-width-collapsed); }
+        .sidebar-logo {
+            display: flex; align-items: center; gap: 12px;
+            padding: 20px 16px; border-bottom: 1px solid var(--border-color);
+            min-height: var(--top-bar-height); cursor: pointer;
+        }
+        .logo-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            display: flex; align-items: center; justify-content: center;
+            color: var(--bg-primary); font-size: 18px;
+            box-shadow: var(--shadow-gold);
+        }
+        .logo-text { font-size: 16px; font-weight: 700; white-space: nowrap; }
+        .logo-text span { color: var(--gold); font-weight: 300; }
+        .sidebar.collapsed .logo-text { display: none; }
+
+        .collapse-btn {
+            position: absolute; right: -12px; top: 50%; transform: translateY(-50%);
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--bg-tertiary); border: 1px solid var(--border-color);
+            color: var(--text-secondary); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 10px; z-index: 101;
+        }
+        .sidebar-nav { flex: 1; padding: 16px 10px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+        .nav-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 13px 16px; border-radius: var(--radius-md);
+            cursor: pointer; color: var(--text-secondary);
+            transition: var(--transition); white-space: nowrap;
+            font-size: 14px; font-weight: 500; border: 1px solid transparent;
+        }
+        .sidebar.collapsed .nav-item { padding: 13px 18px; justify-content: center; }
+        .nav-item i { font-size: 17px; width: 22px; text-align: center; }
+        .sidebar.collapsed .nav-item .nav-label { display: none; }
+        .nav-item:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(201,169,78,0.15), rgba(201,169,78,0.05));
+            color: var(--gold-light); border-color: var(--border-gold);
+        }
+        .sidebar-footer { padding: 16px; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--bg-primary); }
+        .user-name { font-size: 13px; font-weight: 600; }
+        .user-title { font-size: 11px; color: var(--text-muted); }
+        .sidebar.collapsed .user-info { display: none; }
+
+        /* 主内容 */
+        .main-content { flex: 1; margin-left: var(--sidebar-width); transition: margin-left 0.3s ease; display: flex; flex-direction: column; min-height: 100vh; }
+        .sidebar.collapsed~.main-content { margin-left: var(--sidebar-width-collapsed); }
+
+        .top-bar {
+            height: var(--top-bar-height); background: var(--bg-glass);
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px; position: sticky; top: 0; z-index: 50;
+        }
+        .page-title { font-size: 18px; font-weight: 700; }
+        .page-title .highlight { color: var(--gold); }
+        .top-bar-right { display: flex; align-items: center; gap: 18px; }
+        .top-date { font-size: 13px; color: var(--text-secondary); }
+        .top-icon-btn {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            color: var(--text-secondary); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: var(--transition); position: relative;
+        }
+        .top-icon-btn:hover { background: var(--bg-card-hover); color: var(--gold-light); }
+        .notification-badge { position: absolute; top: -3px; right: -3px; width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 9px; display: flex; align-items: center; justify-content: center; }
+
+        /* 面板 */
+        .panel-container { flex: 1; padding: 24px 28px; overflow-y: auto; }
+        .panel { display: none; }
+        .panel.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg); padding: 24px;
+            backdrop-filter: blur(10px); box-shadow: var(--shadow-sm);
+            margin-bottom: 20px; transition: var(--transition);
+        }
+        .card:hover { border-color: var(--border-gold); box-shadow: var(--shadow-md); }
+        .card-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .card-title i { color: var(--gold); }
+        .title-accent { width: 3px; height: 16px; background: var(--gold); border-radius: 2px; margin-right: 4px; }
+
+        /* KPI */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; margin-bottom: 24px; }
+        .kpi-card { background: var(--bg-card); border:1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; transition: var(--transition); }
+        .kpi-card:hover { border-color: var(--border-gold); box-shadow: var(--shadow-gold); transform: translateY(-3px); }
+        .kpi-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+        .kpi-value { font-size: 32px; font-weight: 700; }
+        .kpi-change { font-size: 12px; margin-top: 6px; color: var(--success); }
+
+        /* AI内容工场 */
+        .studio-layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+        .calendar-item { padding: 14px; border-radius: var(--radius-md); background: var(--bg-card); border:1px solid var(--border-color); margin-bottom: 8px; }
+        .calendar-item.today { border-color: var(--border-gold); background: rgba(201,169,78,0.1); }
+        .cal-tag { font-size: 10px; padding: 3px 8px; border-radius: 4px; background: var(--gold); color: var(--bg-primary); font-weight: 700; }
+        .generator-input-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+        .generator-input { flex:1; min-width:200px; padding: 13px 16px; border-radius: var(--radius-md); background: var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); font-size:14px; outline:none; }
+        .generator-input:focus { border-color: var(--border-gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+        .btn-generator { padding: 13px 26px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: var(--bg-primary); font-weight:700; border:none; border-radius: var(--radius-md); cursor:pointer; transition: var(--transition); }
+        .btn-generator:hover { transform: translateY(-2px); }
+        .btn-generator:disabled { opacity:0.6; cursor:not-allowed; }
+        .generator-output { min-height: 300px; padding: 18px; background: var(--bg-card); border:1px solid var(--border-color); border-radius: var(--radius-md); overflow-y: auto; font-size:14px; line-height:1.8; }
+        .violation { background: var(--danger-bg); color: var(--danger); padding: 2px 4px; border-radius: 3px; font-weight:600; }
+        .typing-cursor { display:inline-block; width:2px; height:18px; background:var(--gold); animation: blink 0.7s infinite; vertical-align:text-bottom; }
+        @keyframes blink { 0%,50%{opacity:1} 51%,100%{opacity:0} }
+        .compliance-result { padding: 8px 14px; border-radius: var(--radius-sm); font-size:12px; margin-top:10px; }
+        .compliance-result.pass { background: var(--success-bg); color: var(--success); border:1px solid rgba(46,204,113,0.3); }
+        .compliance-result.fail { background: var(--danger-bg); color: var(--danger); border:1px solid rgba(231,76,60,0.3); }
+
+        /* 设置按钮 */
+        .btn-api-settings { width:38px; height:38px; border-radius:50%; background: var(--bg-card); border:1px solid var(--border-color); color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .btn-api-settings:hover { border-color:var(--border-gold); color:var(--gold-light); }
+
+        /* 模态框 */
+        .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.65); z-index:300; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; }
+        .modal-overlay.open { opacity:1; pointer-events:auto; }
+        .modal-box { background: var(--bg-secondary); border:1px solid var(--border-color); border-radius: var(--radius-lg); padding:28px 32px; max-width:480px; width:90%; box-shadow: var(--shadow-lg); }
+        .modal-title { font-size:17px; font-weight:700; margin-bottom:12px; }
+        .modal-desc { font-size:13px; color:var(--text-secondary); margin-bottom:16px; }
+        .modal-input-group { display:flex; gap:10px; margin-bottom:12px; }
+        .modal-input { flex:1; padding:12px 16px; border-radius: var(--radius-sm); background: var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); outline:none; }
+        .modal-btn { padding:12px 20px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color:var(--bg-primary); font-weight:700; border:none; border-radius: var(--radius-sm); cursor:pointer; }
+        .modal-hint { font-size:12px; color:var(--text-muted); }
+        .modal-close { position:absolute; top:16px; right:16px; cursor:pointer; color:var(--text-secondary); }
+
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .kpi-grid { grid-template-columns: repeat(2,1fr); }
+            .studio-layout { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+            .panel-container { padding:16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                <span class="logo-text">律推<span>·LawPush</span></span>
+            </div>
+            <div class="collapse-btn" id="collapseBtn"><i class="fa-solid fa-chevron-left"></i></div>
+            <nav class="sidebar-nav" id="sidebarNav">
+                <div class="nav-item active" data-panel="dashboard"><i class="fa-solid fa-chart-line"></i><span class="nav-label">数据概览</span></div>
+                <div class="nav-item" data-panel="content-studio"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="nav-label">AI内容工场</span></div>
+                <div class="nav-item" data-panel="leads-pool"><i class="fa-solid fa-users"></i><span class="nav-label">智能线索池</span></div>
+                <div class="nav-item" data-panel="chat-simulator"><i class="fa-solid fa-comments"></i><span class="nav-label">AI咨询模拟器</span></div>
+                <div class="nav-item" data-panel="private-domain"><i class="fa-solid fa-share-nodes"></i><span class="nav-label">私域运营台</span></div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar">张</div>
+                <div class="user-info">
+                    <div class="user-name">张律师</div>
+                    <div class="user-title">高级合伙人</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <span class="page-title" id="pageTitle">数据概览 <span class="highlight">Dashboard</span></span>
+                </div>
+                <div class="top-bar-right">
+                    <span class="top-date" id="topDate"></span>
+                    <div class="top-icon-btn" id="settingsBtn" title="API设置"><i class="fa-solid fa-gear"></i></div>
+                    <div class="top-icon-btn"><i class="fa-solid fa-bell"></i><span class="notification-badge">3</span></div>
+                </div>
+            </header>
+
+            <div class="panel-container" id="panelContainer">
+                <!-- 数据概览 -->
+                <section id="dashboard" class="panel active">
+                    <div class="kpi-grid">
+                        <div class="kpi-card"><div class="kpi-label">今日咨询量</div><div class="kpi-value" id="kpi1">37</div><div class="kpi-change">+15.2%</div></div>
+                        <div class="kpi-card"><div class="kpi-label">高意向线索</div><div class="kpi-value" id="kpi2">8</div><div class="kpi-change">+3.1%</div></div>
+                        <div class="kpi-card"><div class="kpi-label">AI内容产出</div><div class="kpi-value" id="kpi3">12</div><div class="kpi-change">+20%</div></div>
+                        <div class="kpi-card"><div class="kpi-label">本月成案</div><div class="kpi-value" id="kpi4">5</div><div class="kpi-change">+1</div></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title"><span class="title-accent"></span><i class="fa-solid fa-chart-line"></i>近7天获客趋势</div>
+                        <svg id="trendChart" viewBox="0 0 800 200" style="width:100%;height:200px;"></svg>
+                    </div>
+                </section>
+
+                <!-- AI内容工场 -->
+                <section id="content-studio" class="panel">
+                    <div class="studio-layout">
+                        <div class="card">
+                            <div class="card-title"><span class="title-accent"></span><i class="fa-solid fa-calendar-days"></i>内容日历</div>
+                            <div id="contentCalendar"></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title"><span class="title-accent"></span><i class="fa-solid fa-wand-magic-sparkles"></i>AI文案生成器</div>
+                            <div class="generator-input-row">
+                                <input type="text" class="generator-input" id="genInput" placeholder="输入案件关键词，如：劳动争议">
+                                <button class="btn-generator" id="btnGenerate"><i class="fa-solid fa-bolt"></i> 生成脚本</button>
+                            </div>
+                            <div class="generator-output" id="genOutput">
+                                <div class="output-placeholder">输入关键词，AI将为您生成专业口播文案</div>
+                            </div>
+                            <div id="complianceResult" style="display:none;"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 智能线索池 -->
+                <section id="leads-pool" class="panel">
+                    <div class="card">
+                        <div class="card-title"><span class="title-accent"></span><i class="fa-solid fa-users"></i>智能线索池</div>
+                        <div style="margin-bottom:12px;">
+                            <select id="intentFilter" class="generator-input" style="width:200px;padding:10px;">
+                                <option value="all">全部</option>
+                                <option value="high">高意向</option>
+                                <option value="medium">中意向</option>
+                                <option value="low">低意向</option>
+                            </select>
+                        </div>
+                        <div id="leadsTable"></div>
+                    </div>
+                </section>
+
+                <!-- AI咨询模拟器 -->
+                <section id="chat-simulator" class="panel">
+                    <div class="card" style="height:500px;display:flex;flex-direction:column;">
+                        <div class="card-title"><span class="title-accent"></span><i class="fa-solid fa-comments"></i>AI咨询模拟器</div>
+                        <div id="chatMessages" style="flex:1;overflow-y:auto;padding:16px;background:var(--bg-card);border-radius:var(--radius-md);"></div>
+                        <div style="display:flex;gap:10px;margin-top:12px;">
+                            <input type="text" id="chatInput" class="generator-input" placeholder="输入法律问题..." style="flex:1;">
+                            <button id="btnSend" class="btn-generator"><i class="fa-solid fa-paper-plane"></i>发送</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 私域运营台 -->
+                <section id="private-domain" class="panel">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                        <div class="card">
+                            <div class="card-title"><span class="title-accent"></span><i class="fa-solid fa-circle-nodes"></i>朋友圈内容库</div>
+                            <div id="opsPosts"></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title"><span class="title-accent"></span><i class="fa-solid fa-bell-ring"></i>待跟进提醒</div>
+                            <div id="followupList"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- API设置模态框 -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-box" style="position:relative;">
+            <span class="modal-close" id="closeSettings"><i class="fa-solid fa-xmark"></i></span>
+            <div class="modal-title">API 设置</div>
+            <div class="modal-desc">配置 DeepSeek API 代理地址（留空则使用相对路径 /api/generate）</div>
+            <div class="modal-input-group">
+                <input type="text" class="modal-input" id="apiBaseUrl" placeholder="例如：https://your-worker.workers.dev/api/generate">
+                <button class="modal-btn" id="saveApiSettings">保存</button>
+            </div>
+            <div class="modal-hint">提示：API Key 已存储在 Worker 环境变量中，无需在此填写。</div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 全局状态 ==========
+        let currentPanel = 'dashboard';
+        const API_BASE_URL = localStorage.getItem('apiBaseUrl') || '/api/generate';
+        let isGenerating = false;
+
+        // ========== 模拟数据 ==========
+        const mockCalendar = [
+            { day: 'today', title: '劳动争议：经济补偿金怎么算？', time: '09:30', platform: '抖音' },
+            { day: 'tomorrow', title: '离婚冷静期常见问题解答', time: '14:00', platform: '视频号' },
+            { day: 'tomorrow', title: '合同纠纷：违约金条款如何约定', time: '10:00', platform: '抖音' },
+        ];
+
+        const mockLeads = [
+            { id:1, nickname:'微信用户_3281', case:'劳动争议', intensity:'high', time:'10:25', status:'待跟进' },
+            { id:2, nickname:'李女士', case:'离婚纠纷', intensity:'high', time:'09:12', status:'已联系' },
+            { id:3, nickname:'王先生', case:'合同纠纷', intensity:'medium', time:'昨天', status:'待跟进' },
+            { id:4, nickname:'张先生', case:'民间借贷', intensity:'low', time:'2天前', status:'已联系' },
+        ];
+
+        const mockPosts = [
+            { tag:'劳动法', title:'被公司辞退，这些钱你拿了吗？', excerpt:'经济补偿金、代通知金...' },
+            { tag:'婚姻家事', title:'离婚时，彩礼该不该退？', excerpt:'最高法司法解释...' },
+            { tag:'合同实务', title:'签合同前，5个条款一定要看清', excerpt:'违约责任、争议解决...' },
+        ];
+
+        const mockFollowups = [
+            { name:'微信用户_3281', case:'劳动争议 · 高意向', time:'10:25' },
+            { name:'李女士', case:'离婚纠纷 · 高意向', time:'09:12' },
+        ];
+
+        // ========== 初始化 ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            setDate();
+            renderCalendar();
+            renderLeads();
+            renderOps();
+            renderFollowups();
+            drawTrendChart();
+            setupNavigation();
+            setupSettingsModal();
+            setupGenerator();
+            setupChat();
+            updateApiInput();
+        });
+
+        function setDate() {
+            const d = new Date();
+            const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+            document.getElementById('topDate').textContent = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${weekdays[d.getDay()]}`;
+        }
+
+        // ========== 导航切换 ==========
+        function setupNavigation() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                    item.classList.add('active');
+                    const panelId = item.dataset.panel;
+                    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                    document.getElementById(panelId).classList.add('active');
+                    document.getElementById('pageTitle').innerHTML = item.querySelector('.nav-label').textContent + ' <span class="highlight">' + (panelId==='dashboard'?'Dashboard':panelId==='content-studio'?'Content Studio':panelId==='leads-pool'?'Smart Leads':panelId==='chat-simulator'?'Chat Simulator':'Private Domain') + '</span>';
+                });
+            });
+            document.getElementById('collapseBtn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('collapsed');
+            });
+        }
+
+        // ========== 内容日历 ==========
+        function renderCalendar() {
+            const container = document.getElementById('contentCalendar');
+            container.innerHTML = mockCalendar.map(item => `
+                <div class="calendar-item ${item.day}">
+                    <span class="cal-tag">${item.day === 'today' ? '今日' : '明日'}</span>
+                    <div style="font-weight:600;margin:6px 0;">${item.title}</div>
+                    <div style="font-size:12px;color:var(--text-muted);"><i class="fa-solid fa-clock"></i> ${item.time} · ${item.platform}</div>
+                </div>
+            `).join('');
+        }
+
+        // ========== 线索池 ==========
+        function renderLeads(filter='all') {
+            const filtered = filter==='all' ? mockLeads : mockLeads.filter(l => l.intensity===filter);
+            const container = document.getElementById('leadsTable');
+            container.innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;padding:8px 0;border-bottom:1px solid var(--border-color);font-weight:600;font-size:13px;">
+                    <span>昵称</span><span>案由</span><span>意向</span><span>状态</span>
+                </div>
+                ${filtered.map(lead => `
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;padding:12px 0;border-bottom:1px solid var(--border-color);font-size:13px;align-items:center;">
+                        <span>${lead.nickname}</span>
+                        <span>${lead.case}</span>
+                        <span><span class="intensity-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${lead.intensity==='high'?'var(--danger)':lead.intensity==='medium'?'var(--gold)':'#95A5A6'};"></span> ${lead.intensity==='high'?'高':lead.intensity==='medium'?'中':'低'}</span>
+                        <span>${lead.status}</span>
+                    </div>
+                `).join('')}
+            `;
+            document.getElementById('intentFilter')?.addEventListener('change', (e) => renderLeads(e.target.value));
+        }
+
+        // ========== 私域运营 ==========
+        function renderOps() {
+            document.getElementById('opsPosts').innerHTML = mockPosts.map(post => `
+                <div style="padding:14px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-md);margin-bottom:10px;">
+                    <span class="cal-tag" style="font-size:10px;background:var(--gold-glow);color:var(--gold-light);">${post.tag}</span>
+                    <div style="font-weight:600;margin:6px 0;">${post.title}</div>
+                    <div style="font-size:12px;color:var(--text-muted);">${post.excerpt}</div>
+                </div>
+            `).join('');
+            document.getElementById('followupList').innerHTML = mockFollowups.map(f => `
+                <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-md);margin-bottom:10px;">
+                    <div class="user-avatar" style="width:32px;height:32px;font-size:12px;">${f.name[0]}</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:600;">${f.name}</div>
+                        <div style="font-size:12px;color:var(--text-muted);">${f.case} · ${f.time}</div>
+                    </div>
+                    <span style="font-size:12px;color:var(--gold-light);cursor:pointer;">联系</span>
+                </div>
+            `).join('');
+        }
+
+        // ========== 趋势图 ==========
+        function drawTrendChart() {
+            const svg = document.getElementById('trendChart');
+            const data = [22, 28, 25, 35, 32, 40, 37];
+            const max = Math.max(...data) + 5;
+            const min = Math.min(...data) - 5;
+            const points = data.map((val,i) => {
+                const x = 60 + (i/(data.length-1))*680;
+                const y = 180 - ((val-min)/(max-min))*160;
+                return {x,y,val};
+            });
+            const linePath = points.map((p,i)=> `${i===0?'M':'L'}${p.x},${p.y}`).join(' ');
+            const areaPath = linePath + ` L${points[points.length-1].x},180 L${points[0].x},180 Z`;
+            svg.innerHTML = `
+                <line x1="60" y1="20" x2="60" y2="180" stroke="rgba(255,255,255,0.06)" />
+                <line x1="60" y1="180" x2="800" y2="180" stroke="rgba(255,255,255,0.1)" />
+                ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#C9A94E" />`).join('')}
+                <path d="${areaPath}" fill="rgba(201,169,78,0.08)" />
+                <path d="${linePath}" fill="none" stroke="#C9A94E" stroke-width="2.5" />
+                ${points.map(p => `<text x="${p.x}" y="${p.y-12}" fill="rgba(255,255,255,0.6)" font-size="10" text-anchor="middle">${p.val}</text>`).join('')}
+            `;
+        }
+
+        // ========== API设置模态框 ==========
+        function setupSettingsModal() {
+            const modal = document.getElementById('settingsModal');
+            const closeBtn = document.getElementById('closeSettings');
+            document.getElementById('settingsBtn').addEventListener('click', () => modal.classList.add('open'));
+            closeBtn.addEventListener('click', () => modal.classList.remove('open'));
+            modal.addEventListener('click', (e) => { if(e.target===modal) modal.classList.remove('open'); });
+            document.getElementById('saveApiSettings').addEventListener('click', () => {
+                const url = document.getElementById('apiBaseUrl').value.trim();
+                localStorage.setItem('apiBaseUrl', url);
+                modal.classList.remove('open');
+                showToast('API设置已保存');
+            });
+        }
+
+        function updateApiInput() {
+            document.getElementById('apiBaseUrl').value = localStorage.getItem('apiBaseUrl') || '';
+        }
+
+        // ========== 合规审查 ==========
+        const violationWords = ['保证胜诉','绝对','包赢','100%成功','零风险','稳赢','确保胜诉'];
+
+        function checkCompliance(text) {
+            const found = violationWords.filter(w => text.includes(w));
+            return found;
+        }
+
+        function highlightViolations(text) {
+            let html = text;
+            violationWords.forEach(word => {
+                const regex = new RegExp(word, 'g');
+                html = html.replace(regex, `<span class="violation">${word}</span>`);
+            });
+            return html.replace(/\n/g, '<br>');
+        }
+
+        // ========== 流式输出与API调用 ==========
+        async function generateScript(keyword) {
+            if (isGenerating) return;
+            isGenerating = true;
+            const btn = document.getElementById('btnGenerate');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 生成中...';
+            const output = document.getElementById('genOutput');
+            const complianceDiv = document.getElementById('complianceResult');
+            output.innerHTML = '';
+            complianceDiv.style.display = 'none';
+
+            const baseUrl = localStorage.getItem('apiBaseUrl') || '/api/generate';
+            const prompt = `你是一位资深法律新媒体编辑，请根据关键词「${keyword}」，生成一篇60-90秒的短视频口播文案。要求：开头3秒吸引注意力，中间讲1-2个核心法律知识点，结尾引导咨询。风格通俗易懂，避免法言法语堆砌。同时检测文案中是否包含违规词。`;
+
+            try {
+                const response = await fetch(baseUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keyword, prompt })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullText = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, { stream: true });
+                    // 处理可能的分块格式（可能是纯文本或SSE）
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data:')) {
+                            const data = line.slice(5).trim();
+                            if (data === '[DONE]') continue;
+                            try {
+                                const parsed = JSON.parse(data);
+                                const content = parsed.choices?.[0]?.delta?.content || '';
+                                fullText += content;
+                            } catch { /* 忽略非JSON行 */ }
+                        } else if (line.trim() !== '') {
+                            fullText += line;
+                        }
+                    }
+                    output.innerHTML = highlightViolations(fullText) + '<span class="typing-cursor"></span>';
+                    output.scrollTop = output.scrollHeight;
+                }
+
+                // 去除光标
+                output.innerHTML = highlightViolations(fullText);
+                // 合规审查
+                const violations = checkCompliance(fullText);
+                if (violations.length > 0) {
+                    complianceDiv.className = 'compliance-result fail';
+                    complianceDiv.innerHTML = `⚠️ 检测到违规词：${violations.join('、')}，请修改后发布。`;
+                } else {
+                    complianceDiv.className = 'compliance-result pass';
+                    complianceDiv.innerHTML = '✅ 合规审查通过';
+                }
+                complianceDiv.style.display = 'block';
+            } catch (err) {
+                output.innerHTML = `<div style="color:var(--danger);">生成失败：${err.message}。请检查API代理设置或网络。</div>`;
+            } finally {
+                isGenerating = false;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> 生成脚本';
+            }
+        }
+
+        function setupGenerator() {
+            document.getElementById('btnGenerate').addEventListener('click', () => {
+                const keyword = document.getElementById('genInput').value.trim();
+                if (!keyword) { showToast('请输入关键词'); return; }
+                generateScript(keyword);
+            });
+            document.getElementById('genInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') document.getElementById('btnGenerate').click();
+            });
+        }
+
+        // ========== AI咨询模拟器（本地模拟，非API） ==========
+        function setupChat() {
+            const input = document.getElementById('chatInput');
+            const messages = document.getElementById('chatMessages');
+            function addMsg(text, isUser=false) {
+                const div = document.createElement('div');
+                div.style.cssText = `max-width:75%;padding:12px 16px;border-radius:12px;margin-bottom:10px;${isUser?'background:var(--gold);color:var(--bg-primary);margin-left:auto;':'background:var(--bg-card);border:1px solid var(--border-color);'}`;
+                div.textContent = text;
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+            }
+            function sendChat() {
+                const text = input.value.trim();
+                if (!text) return;
+                addMsg(text, true);
+                input.value = '';
+                setTimeout(() => {
+                    const reply = '感谢您的咨询。根据相关法律规定，建议您收集好证据后及时咨询专业律师。如需深度分析，可支付99元解锁。';
+                    addMsg(reply);
+                    // 弹出付费提示
+                    const payDiv = document.createElement('div');
+                    payDiv.style.cssText = 'max-width:75%;padding:14px;background:rgba(201,169,78,0.1);border:1px solid var(--border-gold);border-radius:12px;margin:10px 0;';
+                    payDiv.innerHTML = '<strong>🔒 专业深度分析需付费解锁</strong><br>此问题涉及专业法律程序，建议支付99元获取深度分析。<br><button onclick="alert(\'模拟支付\')" style="margin-top:8px;padding:6px 16px;background:var(--gold);border:none;border-radius:6px;cursor:pointer;">支付解锁</button>';
+                    messages.appendChild(payDiv);
+                    messages.scrollTop = messages.scrollHeight;
+                }, 500);
+            }
+            document.getElementById('btnSend').addEventListener('click', sendChat);
+            input.addEventListener('keydown', (e) => { if(e.key==='Enter') sendChat(); });
+        }
+
+        // ========== Toast ==========
+        function showToast(message) {
+            const container = document.createElement('div');
+            container.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--bg-secondary);border:1px solid var(--border-gold);padding:14px 20px;border-radius:8px;z-index:1000;animation:fadeIn 0.3s;';
+            container.textContent = message;
+            document.body.appendChild(container);
+            setTimeout(() => container.remove(), 2500);
+        }
+    </script>
+</body>
+</html>
