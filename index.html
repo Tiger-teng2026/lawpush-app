@@ -30,8 +30,9 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif; background:var(--bg-primary); color:var(--text-primary); min-height:100vh; }
         .app-container { display:flex; min-height:100vh; }
-        .sidebar { position:fixed; left:0; top:0; bottom:0; width:var(--sidebar-width); background:rgba(13,31,60,0.8); backdrop-filter:blur(20px); border-right:1px solid var(--border-color); transition:width var(--transition); z-index:100; }
+        .sidebar { position:fixed; left:0; top:0; bottom:0; width:var(--sidebar-width); background:rgba(13,31,60,0.8); backdrop-filter:blur(20px); border-right:1px solid var(--border-color); transition:width var(--transition); z-index:100; display:flex; flex-direction:column; }
         .sidebar.collapsed { width:var(--sidebar-collapsed); }
+        .sidebar.collapsed .user-info { display:none; }
         .sidebar-logo { display:flex; align-items:center; gap:12px; padding:20px; border-bottom:1px solid var(--border-color); cursor:pointer; }
         .logo-icon { width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg,var(--gold),#A8883A); display:flex; align-items:center; justify-content:center; color:var(--bg-primary); font-size:18px; }
         .sidebar.collapsed .logo-text { display:none; }
@@ -42,7 +43,7 @@
         .main-content { flex:1; margin-left:var(--sidebar-width); transition:margin-left var(--transition); }
         .sidebar.collapsed ~ .main-content { margin-left:var(--sidebar-collapsed); }
         .top-bar { display:flex; justify-content:space-between; align-items:center; padding:0 28px; height:64px; background:rgba(13,31,60,0.8); backdrop-filter:blur(20px); border-bottom:1px solid var(--border-color); position:sticky; top:0; z-index:50; }
-        .top-icon-btn { width:38px; height:38px; border-radius:50%; background:var(--bg-card); border:1px solid var(--border-color); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-secondary); }
+        .top-icon-btn { position:relative; width:38px; height:38px; border-radius:50%; background:var(--bg-card); border:1px solid var(--border-color); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-secondary); }
         .top-icon-btn:hover { color:var(--gold-light); border-color:var(--border-gold); }
         .panel-container { padding:24px; }
         .panel { display:none; }
@@ -77,8 +78,9 @@
         .calendar-item { padding:14px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border-color); margin-bottom:8px; }
         .calendar-item.today { border-color:var(--border-gold); background:rgba(201,169,78,0.1); }
         .cal-tag { font-size:10px; padding:3px 8px; border-radius:4px; background:var(--gold); color:var(--bg-primary); font-weight:700; }
+        .ops-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
         @media (max-width:1200px) { .kpi-grid{grid-template-columns:repeat(2,1fr);} }
-        @media (max-width:768px) { .kpi-grid{grid-template-columns:1fr;} .panel-container{padding:16px;} }
+        @media (max-width:768px) { .kpi-grid{grid-template-columns:1fr;} .panel-container{padding:16px;} .ops-grid{grid-template-columns:1fr;} .generator-input-row{flex-direction:column;} .btn-generator{width:100%;} }
     </style>
 </head>
 <body>
@@ -173,7 +175,7 @@
 
             <!-- 面板5：私域运营台 -->
             <section id="private-domain" class="panel">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div class="ops-grid">
                     <div class="card">
                         <div class="card-title"><i class="fa-solid fa-circle-nodes"></i>朋友圈内容库</div>
                         <div id="opsPosts"></div>
@@ -193,12 +195,12 @@
     <div class="modal-box">
         <span class="modal-close" id="closeSettings"><i class="fa-solid fa-xmark"></i></span>
         <h3>API 设置</h3>
-        <p style="color:var(--text-secondary);font-size:14px;margin:10px 0;">配置 DeepSeek API 代理地址（留空使用相对路径 /api/generate）</p>
+        <p style="color:var(--text-secondary);font-size:14px;margin:10px 0;">配置 DeepSeek API 代理地址。留空则使用已部署的 Cloudflare Worker。</p>
         <div class="modal-input-group">
-            <input type="text" class="modal-input" id="apiBaseUrl" placeholder="例如：https://your-worker.workers.dev/api/generate">
+            <input type="text" class="modal-input" id="apiBaseUrl" placeholder="https://lawpush-api-proxy.tigerteng2026.workers.dev/api/generate">
             <button class="modal-btn" id="saveApiSettings">保存</button>
         </div>
-        <div class="modal-hint">提示：API Key 已存储在 Worker 环境变量中，无需在此填写。</div>
+        <div class="modal-hint">提示：API Key 已存储在 Worker 环境变量中，无需在此填写。前端页面请访问 https://lawpush-app.vercel.app</div>
     </div>
 </div>
 
@@ -224,8 +226,14 @@ const mockFollowups = [
     { name:'微信用户_3281', case:'劳动争议 · 高意向', time:'10:25' },
     { name:'李女士', case:'离婚纠纷 · 高意向', time:'09:12' },
 ];
+const DEFAULT_API_URL = 'https://lawpush-api-proxy.tigerteng2026.workers.dev/api/generate';
 const violationWords = ['保证胜诉','绝对','包赢','100%成功','零风险','稳赢','确保胜诉'];
 let isGenerating = false;
+
+function getApiUrl() {
+    const saved = (localStorage.getItem('apiBaseUrl') || '').trim();
+    return saved || DEFAULT_API_URL;
+}
 
 // ====================== 工具函数 ======================
 function showToast(msg) {
@@ -310,8 +318,16 @@ document.addEventListener('click', function(e) {
         const panelId = navItem.dataset.panel;
         document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
         document.getElementById(panelId).classList.add('active');
-        const titles = {dashboard:'数据概览 Dashboard', 'content-studio':'AI内容工场', 'leads-pool':'智能线索池', 'chat-simulator':'AI咨询模拟器', 'private-domain':'私域运营台'};
-        document.getElementById('pageTitle').textContent = titles[panelId] || '数据概览';
+        const titles = {
+            dashboard: '数据概览 Dashboard',
+            'content-studio': 'AI内容工场',
+            'leads-pool': '智能线索池',
+            'chat-simulator': 'AI咨询模拟器',
+            'private-domain': '私域运营台'
+        };
+        document.getElementById('pageTitle').innerHTML = panelId === 'dashboard'
+            ? '数据概览 <span style="color:var(--gold);">Dashboard</span>'
+            : (titles[panelId] || '数据概览');
     }
     // 折叠侧边栏
     if (e.target.closest('#logoBtn')) {
@@ -335,12 +351,12 @@ document.addEventListener('click', function(e) {
 });
 
 // 生成脚本按钮
-document.getElementById('btnGenerate').addEventListener('click', async function() {
+async function generateScript() {
     if (isGenerating) return;
     const keyword = document.getElementById('genInput').value.trim();
     if (!keyword) { showToast('请输入关键词'); return; }
     isGenerating = true;
-    const btn = this;
+    const btn = document.getElementById('btnGenerate');
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 生成中...';
     const output = document.getElementById('genOutput');
@@ -348,7 +364,7 @@ document.getElementById('btnGenerate').addEventListener('click', async function(
     output.innerHTML = '';
     compDiv.style.display = 'none';
 
-    const baseUrl = localStorage.getItem('apiBaseUrl') || '/api/generate';
+    const baseUrl = getApiUrl();
     const prompt = `你是一位资深法律新媒体编辑，请根据关键词「${keyword}」，生成一篇60-90秒的短视频口播文案。要求：开头3秒吸引注意力，中间讲1-2个核心法律知识点，结尾引导咨询。风格通俗易懂，避免法言法语堆砌。同时检测文案中是否包含违规词。`;
 
     try {
@@ -357,27 +373,48 @@ document.getElementById('btnGenerate').addEventListener('click', async function(
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({ keyword, prompt })
         });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+            let detail = `HTTP ${response.status}`;
+            try {
+                const errBody = await response.json();
+                if (errBody && errBody.error) detail = errBody.error;
+            } catch {}
+            throw new Error(detail);
+        }
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullText = '';
+        let buffer = '';
         while (true) {
             const {done, value} = await reader.read();
             if (done) break;
-            const chunk = decoder.decode(value, {stream:true});
-            // 处理可能的SSE格式
-            const lines = chunk.split('\n');
+            buffer += decoder.decode(value, {stream:true});
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
             for (const line of lines) {
-                if (line.startsWith('data:')) {
-                    const data = line.slice(5).trim();
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                if (trimmed.startsWith('data:')) {
+                    const data = trimmed.slice(5).trim();
                     if (data === '[DONE]') continue;
                     try { fullText += JSON.parse(data).choices?.[0]?.delta?.content || ''; } catch {}
-                } else if (line.trim() !== '') {
+                } else {
                     fullText += line;
                 }
             }
             output.innerHTML = highlightViolations(fullText) + '<span class="typing-cursor"></span>';
             output.scrollTop = output.scrollHeight;
+        }
+        if (buffer.trim()) {
+            const leftover = buffer.trim();
+            if (leftover.startsWith('data:')) {
+                const data = leftover.slice(5).trim();
+                if (data !== '[DONE]') {
+                    try { fullText += JSON.parse(data).choices?.[0]?.delta?.content || ''; } catch { fullText += leftover; }
+                }
+            } else {
+                fullText += leftover;
+            }
         }
         output.innerHTML = highlightViolations(fullText);
         const found = violationWords.filter(w => fullText.includes(w));
@@ -390,18 +427,36 @@ document.getElementById('btnGenerate').addEventListener('click', async function(
         }
         compDiv.style.display = 'block';
     } catch (err) {
-        output.innerHTML = `<span style="color:var(--danger);">生成失败：${err.message}。请检查API代理设置或网络。</span>`;
+        output.innerHTML = `<span style="color:var(--danger);">生成失败：${escapeHtml(err.message)}。请检查API代理设置或网络。</span>`;
     } finally {
         isGenerating = false;
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-bolt"></i> 生成脚本';
     }
+}
+
+// 生成脚本按钮
+document.getElementById('btnGenerate').addEventListener('click', generateScript);
+document.getElementById('genInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        generateScript();
+    }
 });
 
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
 function highlightViolations(text) {
-    let html = text;
+    let html = escapeHtml(text);
     violationWords.forEach(word => {
-        html = html.replace(new RegExp(word, 'g'), `<span class="violation">${word}</span>`);
+        const escaped = escapeHtml(word);
+        html = html.split(escaped).join(`<span class="violation">${escaped}</span>`);
     });
     return html.replace(/\n/g, '<br>');
 }
@@ -412,17 +467,32 @@ document.getElementById('intentFilter').addEventListener('change', function() {
 });
 
 // 聊天模拟（本地）
-document.getElementById('btnSend').addEventListener('click', function() {
+function appendChatMessage(html, alignRight) {
+    const container = document.getElementById('chatMessages');
+    const wrap = document.createElement('div');
+    wrap.style.cssText = (alignRight ? 'text-align:right;' : '') + 'margin-bottom:10px;';
+    wrap.innerHTML = html;
+    container.appendChild(wrap);
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendChat() {
     const input = document.getElementById('chatInput');
     const msg = input.value.trim();
     if (!msg) return;
-    const container = document.getElementById('chatMessages');
-    container.innerHTML += `<div style="text-align:right;margin-bottom:10px;"><span style="background:var(--gold);color:var(--bg-primary);padding:8px 12px;border-radius:10px;">${msg}</span></div>`;
+    appendChatMessage(`<span style="background:var(--gold);color:var(--bg-primary);padding:8px 12px;border-radius:10px;">${escapeHtml(msg)}</span>`, true);
     input.value = '';
     setTimeout(() => {
-        container.innerHTML += `<div style="margin-bottom:10px;"><span style="background:var(--bg-card);border:1px solid var(--border-color);padding:8px 12px;border-radius:10px;display:inline-block;">感谢您的咨询。建议您收集证据后及时咨询专业律师。如需深度分析，可支付99元解锁。</span></div>`;
-        container.scrollTop = container.scrollHeight;
+        appendChatMessage(`<span style="background:var(--bg-card);border:1px solid var(--border-color);padding:8px 12px;border-radius:10px;display:inline-block;">感谢您的咨询。建议您收集证据后及时咨询专业律师。如需深度分析，可支付99元解锁。</span>`, false);
     }, 500);
+}
+
+document.getElementById('btnSend').addEventListener('click', sendChat);
+document.getElementById('chatInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        sendChat();
+    }
 });
 
 // ====================== 启动 ======================
@@ -432,7 +502,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderLeads();
     renderOps();
     drawTrendChart();
-    document.getElementById('apiBaseUrl').value = localStorage.getItem('apiBaseUrl') || '';
+    document.getElementById('apiBaseUrl').value = localStorage.getItem('apiBaseUrl') || DEFAULT_API_URL;
     console.log('律推·LawPush MVP 加载成功，祝大卖！');
 });
 
