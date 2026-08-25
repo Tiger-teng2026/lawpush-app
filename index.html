@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>律推·LawPush - AI智能获客SaaS平台</title>
+    <title>刑律·CrimPulse - AI智能获客SaaS平台</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
@@ -89,7 +89,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo" id="logoBtn">
             <div class="logo-icon"><i class="fa-solid fa-scale-balanced"></i></div>
-            <span class="logo-text">律推<span style="color:var(--gold);">·LawPush</span></span>
+            <span class="logo-text">刑律<span style="color:var(--gold);">·CrimPulse</span></span>
         </div>
         <nav id="navMenu">
             <div class="nav-item active" data-panel="dashboard"><i class="fa-solid fa-chart-line"></i><span class="nav-label">数据概览</span></div>
@@ -197,10 +197,10 @@
         <h3>API 设置</h3>
         <p style="color:var(--text-secondary);font-size:14px;margin:10px 0;">配置 DeepSeek API 代理地址。留空则使用已部署的 Cloudflare Worker。</p>
         <div class="modal-input-group">
-            <input type="text" class="modal-input" id="apiBaseUrl" placeholder="https://lawpush-api-proxy.tigerteng2026.workers.dev/api/generate">
+            <input type="text" class="modal-input" id="apiBaseUrl" placeholder="https://crimpulse-api-proxy.tigerteng2026.workers.dev/api/generate">
             <button class="modal-btn" id="saveApiSettings">保存</button>
         </div>
-        <div class="modal-hint">提示：API Key 已存储在 Worker 环境变量中，无需在此填写。前端页面请访问 https://lawpush-app.vercel.app</div>
+        <div class="modal-hint">提示：API Key 已存储在 Worker 环境变量中，无需在此填写。前端页面请访问 https://crimpulse-app.vercel.app</div>
     </div>
 </div>
 
@@ -226,7 +226,7 @@ const mockFollowups = [
     { name:'微信用户_3281', case:'劳动争议 · 高意向', time:'10:25' },
     { name:'李女士', case:'离婚纠纷 · 高意向', time:'09:12' },
 ];
-const DEFAULT_API_URL = 'https://lawpush-api-proxy.tigerteng2026.workers.dev/api/generate';
+const DEFAULT_API_URL = 'https://crimpulse-api-proxy.tigerteng2026.workers.dev/api/generate';
 const violationWords = ['保证胜诉','绝对','包赢','100%成功','100%','零风险','稳赢','保证成功','确保胜诉'];
 let isGenerating = false;
 
@@ -538,7 +538,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderOps();
     drawTrendChart();
     document.getElementById('apiBaseUrl').value = localStorage.getItem('apiBaseUrl') || DEFAULT_API_URL;
-    console.log('律推·LawPush MVP 加载成功，祝大卖！');
+    console.log('刑律·CrimPulse MVP 加载成功，祝大卖！');
 });
 
 function setDate() {

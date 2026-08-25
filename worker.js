@@ -1,5 +1,5 @@
 /**
- * 律推·LawPush - Cloudflare Worker 代理
+ * 刑律·CrimPulse - Cloudflare Worker 代理
  * 功能：接收前端请求，转发至 DeepSeek API，隐藏 API Key，支持流式响应。
  */
 
@@ -25,7 +25,7 @@ function statusPage() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>律推 API 代理</title>
+    <title>刑律 API 代理</title>
     <style>
         body { font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background:#0A1628; color:#F0F4FA; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; }
         .card { background:rgba(255,255,255,0.04); border:1px solid rgba(201,169,78,0.35); border-radius:16px; padding:32px; max-width:520px; width:90%; }
@@ -37,9 +37,9 @@ function statusPage() {
 </head>
 <body>
     <div class="card">
-        <h1>律推 API 代理已运行</h1>
+        <h1>刑律 API 代理已运行</h1>
         <p>这是后端接口，不是前端页面。请打开前端使用：</p>
-        <p><a href="https://lawpush-app.vercel.app">https://lawpush-app.vercel.app</a></p>
+        <p><a href="https://crimpulse-app.vercel.app">https://crimpulse-app.vercel.app</a></p>
         <p>生成接口：<code>POST /api/generate</code></p>
     </div>
 </body>
@@ -69,9 +69,9 @@ export default {
             if (url.pathname === '/health') {
                 return jsonResponse({
                     ok: true,
-                    service: 'lawpush-api-proxy',
+                    service: 'crimpulse-api-proxy',
                     endpoint: 'POST /api/generate',
-                    frontend: 'https://lawpush-app.vercel.app',
+                    frontend: 'https://crimpulse-app.vercel.app',
                 });
             }
             return statusPage();
@@ -80,7 +80,7 @@ export default {
         if (request.method !== 'POST' || !isGeneratePath(url.pathname)) {
             return jsonResponse({
                 error: 'Not Found',
-                hint: '请使用 POST /api/generate，或打开前端 https://lawpush-app.vercel.app',
+                hint: '请使用 POST /api/generate，或打开前端 https://crimpulse-app.vercel.app',
             }, 404);
         }
 
