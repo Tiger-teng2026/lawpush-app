@@ -235,6 +235,19 @@ function getApiUrl() {
     return saved || DEFAULT_API_URL;
 }
 
+function buildScriptPrompt(keyword) {
+    return `你是一位正在拍短视频的执业律师，正对着镜头跟观众聊天。请根据关键词「${keyword}」，写一篇60到90秒、可以直接念出来的口播文案。
+
+必须遵守：
+1. 开头用「最近办的一个案子」引入真实办案场景，增加代入感。禁止使用「上个月有个客户」或类似说法。
+2. 整体像面对面聊天：短句、口语、有停顿，可以说「你看」「说白了」「很多人不知道」。不要书面腔，不要法言法语堆砌。
+3. 中间只讲1到2个核心法律知识点，讲人听得懂的大白话。
+4. 结尾自然引导咨询。然后另起一行，原文输出这句免责声明：本视频仅作法律知识分享，不构成个案法律建议
+5. 只输出能直接念的正文。不要标题、不要分镜、不要字数说明、不要markdown、不要emoji、不要【】标注、不要编号列表、不要用引号把全文包起来。
+
+禁止出现：保证胜诉、绝对、包赢、100%成功、零风险、稳赢、确保胜诉。`;
+}
+
 // ====================== 工具函数 ======================
 function showToast(msg) {
     const div = document.createElement('div');
@@ -365,7 +378,7 @@ async function generateScript() {
     compDiv.style.display = 'none';
 
     const baseUrl = getApiUrl();
-    const prompt = `你是一位资深法律新媒体编辑，请根据关键词「${keyword}」，生成一篇60-90秒的短视频口播文案。要求：开头3秒吸引注意力，中间讲1-2个核心法律知识点，结尾引导咨询。风格通俗易懂，避免法言法语堆砌。同时检测文案中是否包含违规词。`;
+    const prompt = buildScriptPrompt(keyword);
 
     try {
         const response = await fetch(baseUrl, {

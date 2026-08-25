@@ -97,16 +97,19 @@ export default {
         }
 
         const keyword = body.keyword || '';
-        const prompt = body.prompt || `你是一位资深法律新媒体编辑，请根据关键词「${keyword}」，生成一篇60-90秒的短视频口播文案。要求：开头3秒吸引注意力，中间讲1-2个核心法律知识点，结尾引导咨询。风格通俗易懂，避免法言法语堆砌。同时检测文案中是否包含违规词。`;
+        const prompt = body.prompt || `你是一位正在拍短视频的执业律师，正对着镜头跟观众聊天。请根据关键词「${keyword}」，写一篇60到90秒、可以直接念出来的口播文案。开头用「最近办的一个案子」引入，禁止说「上个月有个客户」。像面对面聊天，短句口语。结尾另起一行写：本视频仅作法律知识分享，不构成个案法律建议。只输出正文，不要标题、分镜、markdown、emoji、【】或编号。`;
 
         const deepseekBody = {
             model: 'deepseek-chat',
             messages: [
-                { role: 'system', content: '你是一位资深法律新媒体编辑，擅长创作通俗易懂的法律科普短视频文案。' },
+                {
+                    role: 'system',
+                    content: '你是一位拍短视频的执业律师，文案必须像面对面聊天。开头用「最近办的一个案子」，结尾必须有「本视频仅作法律知识分享，不构成个案法律建议」。只输出可直接口播的纯文本，不要多余符号。',
+                },
                 { role: 'user', content: prompt },
             ],
             stream: true,
-            temperature: 0.7,
+            temperature: 0.8,
         };
 
         try {
